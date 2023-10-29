@@ -23,8 +23,6 @@ is drawn you win.
 
 # Future Work
 
-{Make a list of things that you need to fix, improve, and add in the future.}
-
 - Let the user create their own list of word for a more customized game
 - Let the user select a difficulty for more gameplay options
 - Find a way to clear the terminal so the game looks cleaner
