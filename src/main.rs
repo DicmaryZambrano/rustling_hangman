@@ -43,25 +43,25 @@ impl Word {
 }
 
 struct Guess {
-    // the players guessed character
+    // the player's guessed character
     letter: char,
 }
 
 struct Hangman {
     word: Word,
     guessed_letters: Vec<char>,
-    lives: i32,
+    incorrect_guesses: i32,
 }
 
 impl Hangman {
     fn new(word_text: String) -> Self {
         let word = Word::new(word_text); // creates a word object from the text
         let guessed_letters = Vec::new(); // stores guessed letters
-        let lives = 10; // sets the players lives
+        let incorrect_guesses = 0;
         Hangman {
             word,
             guessed_letters,
-            lives,
+            incorrect_guesses,
         }
     }
 
@@ -111,6 +111,85 @@ impl Hangman {
         println!("Guessed letters: {}", guessed_letters);
     }
 
+    fn draw_hangman(&self) {
+        //draws your hangman
+        let hangman_figure = match self.incorrect_guesses {
+            0 => {
+                "
+              +---+
+              |   |
+                  |
+                  |
+                  |
+                  |
+            =========\n"
+            }
+            1 => {
+                "
+              +---+
+              |   |
+              O   |
+                  |
+                  |
+                  |
+            =========\n"
+            }
+            2 => {
+                "
+              +---+
+              |   |
+              O   |
+              |   |
+                  |
+                  |
+            =========\n"
+            }
+            3 => {
+                "
+              +---+
+              |   |
+              O   |
+             /|   |
+                  |
+                  |
+            =========\n"
+            }
+            4 => {
+                "
+              +---+
+              |   |
+              O   |
+             /|\\  |
+                  |
+                  |
+            =========\n"
+            }
+            5 => {
+                "
+              +---+
+              |   |
+              O   |
+             /|\\  |
+             /    |
+                  |
+            =========\n"
+            }
+            6 => {
+                "
+              +---+
+              |   |
+              O   |
+             /|\\  |
+             / \\  |
+                  |
+            =========\n"
+            }
+            _ => "",
+        };
+
+        println!("{}", hangman_figure);
+    }
+
     fn handle_guess(&mut self, guess: Guess) {
         // evaluates the guess object's letter
         // and makes sure it is not a repeated guess
@@ -122,8 +201,11 @@ impl Hangman {
             self.guessed_letters.push(letter);
             let found = self.word.check_guess(letter);
             if !found {
-                self.lives -= 1;
-                println!("Wrong guess! Try again. lives left: {}", self.lives);
+                self.incorrect_guesses += 1;
+                println!(
+                    "Wrong guess! Try again. lives left: {}",
+                    6 - self.incorrect_guesses
+                );
             }
         }
     }
@@ -145,17 +227,19 @@ impl Hangman {
         // displays the guessed letters
         // checks for a guess
         loop {
+            self.draw_hangman();
             self.display_word();
             self.display_guessed_letters();
             let guess = self.get_guess();
             self.handle_guess(guess);
 
-            if self.lives == 0 {
+            if self.incorrect_guesses == 6 {
                 // if you run out of lives you lose the game
                 println!(
                     "Game Over! You ran out of lives. The word was: {}",
                     self.word.word_text
                 );
+                self.draw_hangman();
                 break;
             }
 
@@ -229,14 +313,48 @@ fn get_category_choice() -> String {
     }
 }
 
+fn play_again() -> bool {
+    /*
+     * Let's the player decide if they want to play again
+     */
+
+    loop {
+        println!("Do you want to play again?:");
+        println!("1. Yes");
+        println!("2. No");
+
+        // reads the user input
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
+
+        // match the input to the result
+        match input.trim() {
+            "1" => return true,
+            "2" => return false,
+            _ => println!("Invalid choice. Please try again. :P"),
+        }
+    }
+}
+
 fn main() {
-    println!("Welcome to Rustling Hangman!");
+    loop {
+        println!("Welcome to Rustling Hangman!");
 
-    let category_path = get_category_choice();
-    let words = read_words_from_file(&category_path);
+        let category_path = get_category_choice();
+        let words = read_words_from_file(&category_path);
 
-    let word_text = pick_random_word(&words);
-    let mut game = Hangman::new(word_text);
+        let word_text = pick_random_word(&words);
+        let mut game = Hangman::new(word_text);
 
-    game.play();
+        game.play();
+
+        if play_again() {
+            continue;
+        } else {
+            println!("Goodbye!");
+            break;
+        }
+    }
 }
